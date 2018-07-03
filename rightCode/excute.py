@@ -7,8 +7,9 @@ import os
 from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import askdirectory,askopenfilename
+from reRank import reRankP
 
-def step(filePath,reference_Path):
+def step(filePath,reference_Path,topN):
     #输入从tabula 网站得到的.csv文件，转换成JSON
     #输出文本保存在filePath下
     # filePath = 'F:/TestPaper/PIO/Tabula-Inhaled nitric oxide for the postoperative management of pulmonary hypertension in infants and children with congenital heart disease.csv'   #地址可修改
@@ -33,15 +34,24 @@ def step(filePath,reference_Path):
     hyp_Path = reference_Path
     ref_Path = jsonPath
     #####三种计算相似度的方式
+    fileContent = ['textOriginal', 'textStem', 'textExcludeStopWord']
+    for f in fileContent:
+        res_Path = hyp_Path + '/' + f
+        getRougeScore.calculateRouge(hyp_Path, ref_Path, f)  # 计算相似度矩阵
+        getRougeScore.rougeRank(res_Path, topN)  # 按相似度对句子进行排序，取topN的句子
 
-    getRougeScore.calculateRouge(hyp_Path, ref_Path, 'textOriginal')  # 计算相似度矩阵
-    getRougeScore.rougeRank(hyp_Path + '/textOriginal', 15)  # 按相似度对句子进行排序，取topN的句子
+        #对topN的P进行重排序
+        path_list = os.listdir(res_Path)
+        for f in path_list:
+            for sheetNum in range(2, 6):
+                reRankP(res_Path, f, ref_Path, sheetNum ,8)
 
-    getRougeScore.calculateRouge(hyp_Path, ref_Path,'textStem') #计算相似度矩阵
-    getRougeScore.rougeRank(hyp_Path+'/textStem',15) #按相似度对句子进行排序，取topN的句子
+        # getRougeScore.calculateRouge(hyp_Path, ref_Path,'textStem') #计算相似度矩阵
+        # getRougeScore.rougeRank(hyp_Path+'/textStem',15) #按相似度对句子进行排序，取topN的句子
+        #
+        # getRougeScore.calculateRouge(hyp_Path, ref_Path, 'textExcludeStopWord')  # 计算相似度矩阵
+        # getRougeScore.rougeRank(hyp_Path + '/textExcludeStopWord', 15)  # 按相似度对句子进行排序，取topN的句子
 
-    getRougeScore.calculateRouge(hyp_Path, ref_Path, 'textExcludeStopWord')  # 计算相似度矩阵
-    getRougeScore.rougeRank(hyp_Path + '/textExcludeStopWord', 15)  # 按相似度对句子进行排序，取topN的句子
 
 
 def selectPath():
@@ -54,7 +64,9 @@ def selectFile():
 
 def excuteStep():
     if path1.get() and path2.get():
-        step(path1.get(),path2.get())
+        step(path1.get(),path2.get(),30)
+
+
         r = messagebox.showwarning('消息框', '数据处理完成！')
         print('showwarning:', r)
     else:

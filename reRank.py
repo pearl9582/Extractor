@@ -1,5 +1,10 @@
+# -*- coding: utf-8 -*-
+# 读对topN 个P进行重排序
+# 2018.7.1 Pearl
+
 import json,re,os
-import xlrd,copy
+import xlrd
+from xlutils.copy import copy
 
 
 def getNumOfP(res_Path, pio_Path):
@@ -22,7 +27,7 @@ def getNumOfP(res_Path, pio_Path):
                 # print(p_num)
     return p_num
 
-def getNumOfRef(filename):
+def getNumOfRef(filename,sheetNum):
     '''
 
     :param filename:  topN所在文件
@@ -31,7 +36,7 @@ def getNumOfRef(filename):
     resPNum = []
     pNum = []
     rd = xlrd.open_workbook(filename)
-    sheet = rd.sheet_by_index(2)  # top N所在表格
+    sheet = rd.sheet_by_index(sheetNum)  # top N所在表格
     nrows = sheet.nrows
     # wb = copy(rd)
     for i in range(0,nrows-1):
@@ -64,18 +69,41 @@ def numSimilarity(resPNum, p_Num):
         number = 0
     return result
 
+def reRankP(res_content,res_Path, pio_Path,sheetNum ,topN):
+    '''
+    对文件res_Path
+    :param res_Path:
+    :param pio_Path:
+    :param sheetNum:
+    :return:
+    '''
+    filename = res_content + '/' + res_Path
+    rd = xlrd.open_workbook(filename)
+    sheet = rd.sheet_by_index(sheetNum)  # top N所在表格
+    nrows = sheet.nrows
+    wb = copy(rd)
+    ws = wb.get_sheet(sheetNum)
+    pNum = getNumOfP(res_Path, pio_Path)
+    # print(pNum)
+
+    resPNum = getNumOfRef(filename, sheetNum)
+    # print(resPNum)
+    ns = numSimilarity(resPNum, pNum)
+    # print(ns)
+    for i in range(0, topN):
+        maxn = max(ns)
+        index = ns.index(maxn)
+        ws.write(i + nrows + 5, 0, sheet.cell(index, 0).value)
+        ns[index] = -1
+    wb.save(filename)
+
+
+
+
+
 if __name__ == '__main__':
     res_Path = 'Jafari 2012_textExcludeStopWord.xls'
     res_content = 'F:/TestPaper/ref_Music/textExcludeStopWord'
-    filename = res_content+'/'+res_Path
     pio_Path = 'F:/TestPaper/PIO/Tabula-Music for stress and anxiety reduction in coronary heartdisease patients.csv.json'
-    pNum = getNumOfP(res_Path, pio_Path)
-    print(pNum)
-
-
-    # path_list = os.listdir(res_content)
-    # for filename in path_list:
-    resPNum = getNumOfRef(filename)
-    print(resPNum)
-    ns = numSimilarity(resPNum, pNum)
-    print(ns)
+    for i in range(2,6):
+        reRankP(res_content,res_Path, pio_Path,i ,8)

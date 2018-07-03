@@ -221,12 +221,15 @@ def rougeRankBy(Path,topN,by):
             except Exception as err:
                 sheet3 = wb.add_sheet('原文相似度排序by'+rougeMatrix[by], cell_overwrite_ok=True)  # 增加一个工作表，记录ROUGE矩阵
 
+            lastSentence = ''
             for i in range(0,topN): #取相似度最高的top n
                 maxcols = max(cols)
                 index = cols.index(maxcols)
-                # print(index)
-                # print(sheet1.cell(index,0).value)
+                # if sheet1.cell(index,0).value == lastSentence: #当前句子与上一次选定的句子相同，跳过该句；否则，将该句子写入topN结果表，并设置该句子为lastSentence
+                #     i = i -1
+                # else:
                 sheet3.write(i,0,sheet1.cell(index,0).value)
+                # lastSentence = sheet1.cell(index,0).value
                 cols[index] = 0
             sheet3.write(i+1,0,'###### top '+str(topN)+' end')
             sheet3.write(i+2,0,'')
