@@ -27,5 +27,3 @@ from textblob import TextBlob
 totalCount = ' In the United Kingdom home-based cardiac rehabilitation with[1] a self-help manual ' \
              'supported by a nurse facilitator [3]is a popular method of rehabilitation [14], and was offered to more than 10,000'
 totalCount = re.sub("[[](.*?)[]]", "", totalCount)
-
-print(totalCount)
